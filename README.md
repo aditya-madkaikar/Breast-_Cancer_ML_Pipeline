@@ -33,3 +33,14 @@ Breast Cancer Wisconsin Dataset from Scikit-learn.
 - Deep learning based medical imaging models
 - Multimodal healthcare AI
 - Larger cancer datasets
+
+## Pipeline
+
+The project follows an end-to-end ML pipeline:
+
+1. Data loading
+2. Data preprocessing
+3. Feature scaling
+4. Model training
+5. Model evaluation
+6. Clinical performance analysis
