@@ -28,15 +28,17 @@ for name,model in models.items():
     accuracy=accuracy_score(y_test,y_pred)
     result[name]=accuracy
     print(f"acurrary={accuracy}")
+    filename=("models/"+name.replace(" ","_")+".pkl")
+    with open(filename,"wb") as file:
+        pickle.dump(model,file)
 
 print(result)
-best_model_name = max(result,key=result.get)
-best_accuracy = result[best_model_name]
-best_model = models[best_model_name]
-print("\nBest Model:")
-print(best_model_name)
+max_accuracy_model_name = max(result,key=result.get)
+best_accuracy = result[max_accuracy_model_name]
+
+print("\nMost accurate Model:")
+print(max_accuracy_model_name)
 print(f"Accuracy:{best_accuracy}")
 
-with open("models/best_model.pkl","wb") as file:
-    pickle.dump(best_model,file)
+
 
