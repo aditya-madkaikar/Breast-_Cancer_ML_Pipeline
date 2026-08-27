@@ -11,13 +11,13 @@ import pickle
 X_train_scalled,X_test_scalled,X_train,X_test,y_train,y_test,scaler=load_and_prepare_data()
 
 models={
-    "logistic regresison":LogisticRegression(max_iter=10000,solver="liblinear"),
-    "Decison tree":DecisionTreeClassifier(random_state=42),
-    "Random forest":RandomForestClassifier(n_estimators=100,random_state=42)
+    "Logistic Regresison":LogisticRegression(max_iter=10000,solver="liblinear"),
+    "Decision Tree":DecisionTreeClassifier(random_state=42),
+    "Random Forest":RandomForestClassifier(n_estimators=100,random_state=42)
 }
 result={}
 for name,model in models.items():
-    if name=="Logistic regression":
+    if name=="Logistic Regression":
         model.fit(X_train_scalled,y_train)
         y_pred = model.predict(X_test_scalled)
         print(name)
