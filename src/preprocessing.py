@@ -30,6 +30,8 @@ def load_and_prepare_data():
     return(
         X_test_saclled,
         X_train_scalled,
+        X_test,
+        X_train,
         y_test,
         y_train,
         scaler
