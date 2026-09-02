@@ -8,10 +8,10 @@ from preprocessing import load_and_prepare_data
 
 import pickle
 
-X_train_scalled,X_test_scalled,X_train,X_test,y_train,y_test,scaler=load_and_prepare_data()
+X_train,X_test,X_train_scalled,X_test_scalled,y_train,y_test,scaler=load_and_prepare_data()
 
 models={
-    "Logistic Regresison":LogisticRegression(max_iter=10000,solver="liblinear"),
+    "Logistic Regression":LogisticRegression(max_iter=10000,solver="lbfgs",C=0.1),
     "Decision Tree":DecisionTreeClassifier(random_state=42),
     "Random Forest":RandomForestClassifier(n_estimators=100,random_state=42)
 }

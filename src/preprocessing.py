@@ -28,11 +28,11 @@ def load_and_prepare_data():
     X_test_saclled=scaler.transform(X_test)
 
     return(
-        X_test_saclled,
-        X_train_scalled,
-        X_test,
         X_train,
-        y_test,
+        X_test,
+        X_train_scalled,
+        X_test_saclled,
         y_train,
+        y_test,
         scaler
     )
