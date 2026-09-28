@@ -1,6 +1,7 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
 
 from sklearn.metrics import accuracy_score
 
@@ -20,10 +21,22 @@ for name,model in models.items():
     if name=="Logistic Regression":
         model.fit(X_train_scalled,y_train)
         y_pred = model.predict(X_test_scalled)
+        scores = cross_val_score(
+            model,
+            X_train,
+            y_train,
+            cv=5 )
+        print(scores.mean())
         print(name)
     else:
         model.fit(X_train,y_train)
         y_pred = model.predict(X_test)
+        scores = cross_val_score(
+            model,
+            X_train,
+            y_train,
+            cv=5 )
+        print(scores.mean())
         print(name)
     accuracy=accuracy_score(y_test,y_pred)
     result[name]=accuracy
