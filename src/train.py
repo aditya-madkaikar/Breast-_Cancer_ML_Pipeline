@@ -16,6 +16,22 @@ X_train,X_test,X_train_scalled,X_test_scalled,y_train,y_test,scaler=load_and_pre
 
 import numpy as np
 
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+MODELS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "models"
+)
+
+os.makedirs(
+    MODELS_DIR,
+    exist_ok=True
+)
+
 models={
     "Logistic Regression":LogisticRegression(max_iter=10000,solver="lbfgs",C=0.1),
     "Decision Tree":DecisionTreeClassifier(random_state=42),
@@ -26,7 +42,7 @@ cv = StratifiedKFold(
     shuffle=True,
     random_state=42
 )
-os.makedirs("models",exist_ok=True)
+
 result={}
 for name,model in models.items():
     print("\n==============================")
@@ -61,9 +77,9 @@ for name,model in models.items():
     print("Mean CV accuracy:",cv_scores.mean())
     print("CV standard deviation:",cv_scores.std())
     print("Test accuracy:",test_accuracy)
-    filename=("models/"+name.replace(" ","_")+".pkl")
-    with open(filename,"wb") as file:
-        pickle.dump(model,file)
-
-
-
+    filename = os.path.join(
+        MODELS_DIR,
+        name.replace(" ", "_") + ".pkl"
+    )
+    with open(filename, "wb") as file:
+        pickle.dump(model, file)

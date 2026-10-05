@@ -3,16 +3,45 @@ import pickle
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
-    RocCurveDisplay
+    RocCurveDisplay,
 )
 from preprocessing import load_and_prepare_data
+
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+MODELS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "models"
+)
+
+RESULTS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "results"
+)
+
+CONFUSION_DIR = os.path.join(
+    RESULTS_DIR,
+    "confusion_matrices"
+)
+
+os.makedirs(
+    CONFUSION_DIR,
+    exist_ok=True
+)
 
 X_train, X_test, X_train_scaled, X_test_scaled,y_train,y_test,scaler=load_and_prepare_data()
 
 model_files={
-        "Logistic Regression":"models/Logistic_Regression.pkl",
-        "Decision Tree":"models/Decision_Tree.pkl",
-        "Random Forest":"models/Random_Forest.pkl"
+        "Logistic Regression":os.path.join(MODELS_DIR,"Logistic_Regression.pkl"),
+        "Decision Tree":os.path.join(MODELS_DIR,"Decision_Tree.pkl"),
+        "Random Forest":os.path.join(MODELS_DIR,"Random_Forest.pkl"),
+        "Tuned Logistic Regression":os.path.join(MODELS_DIR,"Tuned_Logistic_Regression.pkl"),
+        "Tuned Decision Tree":os.path.join(MODELS_DIR,"Tuned_Decision_Tree.pkl"),
+        "Tuned Random Forest":os.path.join(MODELS_DIR,"Tuned_Random_Forest.pkl")
 }
 
 for name,path in model_files.items():
@@ -29,7 +58,7 @@ for name,path in model_files.items():
         y_test
     )
     plt.title(name)
-    plt.savefig("results/"+ name.replace(" ","_") + "_confusion_matrix.png")
+    plt.savefig(os.path.join(CONFUSION_DIR,name.replace(" ","_") + "_confusion_matrix.png"),bbox_inches="tight")
     plt.close()
 
 fig, ax = plt.subplots()
@@ -54,12 +83,12 @@ for name, path in model_files.items():
 
 plt.title("ROC Curve Comparison")
 
-plt.savefig("results/roc_curve.png")
+plt.savefig(os.path.join(RESULTS_DIR,"roc_curve.png"),bbox_inches="tight")
 
 plt.close()
 
-with open(
-    "models/Random_Forest.pkl",
+with open(os.path.join(
+        MODELS_DIR,"Random_Forest.pkl"),
     "rb"
 ) as file:
 
@@ -89,8 +118,7 @@ plt.title(
 
 plt.tight_layout()
 
-plt.savefig(
-    "results/feature_importance.png"
-)
+plt.savefig(os.path.join(
+        RESULTS_DIR,"feature_importance.png"),bbox_inches="tight")
 
 plt.close()

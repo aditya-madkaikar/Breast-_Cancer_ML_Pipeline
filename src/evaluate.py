@@ -3,6 +3,27 @@ import os
 
 import pandas as pd
 
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
+
+MODELS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "models"
+)
+
+RESULTS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "results"
+)
+
+os.makedirs(
+    RESULTS_DIR,
+    exist_ok=True
+)
+
 
 from sklearn.metrics import (
     accuracy_score,
@@ -19,14 +40,17 @@ from preprocessing import load_and_prepare_data
 X_train, X_test, X_train_scaled, X_test_scaled,y_train,y_test,scaler=load_and_prepare_data()
 
 model_files={
-        "Logistic Regression":"models/Logistic_Regression.pkl",
-        "Decision Tree":"models/Decision_Tree.pkl",
-        "Random Forest":"models/Random_Forest.pkl"
+        "Logistic Regression":os.path.join(MODELS_DIR,"Logistic_Regression.pkl"),
+        "Decision Tree":os.path.join(MODELS_DIR,"Decision_Tree.pkl"),
+        "Random Forest":os.path.join(MODELS_DIR,"Random_Forest.pkl"),
+        "Tuned Logistic Regression":os.path.join(MODELS_DIR,"Tuned_Logistic_Regression.pkl"),
+        "Tuned Decision Tree":os.path.join(MODELS_DIR,"Tuned_Decision_Tree.pkl"),
+        "Tuned Random Forest":os.path.join(MODELS_DIR,"Tuned_Random_Forest.pkl")
 }
 
 result=[]
 for name,path in model_files.items():
-    print(f"evaluating {name}")
+    print(f"========{name}==========")
     with open (path,"rb") as file:
         model=pickle.load(file)
     if(name=="Logistic Regression"):
@@ -39,9 +63,9 @@ for name,path in model_files.items():
     cm=confusion_matrix(y_test,y_pred)
     print(cm)
     tn,fp,fn,tp=cm.ravel()
-    print(f"false negtive = {fn}")
+    print(f"false negative = {fn}")
     print(f"false positive = {fp}")
-    print(f"true negtive = {tn}")
+    print(f"true negative = {tn}")
     print(f"true positive = {tp}")
 
     sensitivity=recall_score(y_test,y_pred)
@@ -49,33 +73,26 @@ for name,path in model_files.items():
     f1=f1_score(y_test,y_pred)
     accurary=accuracy_score(y_test,y_pred)
     auc=roc_auc_score(y_test,y_probab)
+    precision = precision_score(y_test,y_pred)
 
     result.append({
         "model name":name,
         "Accurary":accurary,
         "sensitivity":sensitivity,
+        "Precision":precision,
         "f1 value":f1,
         "specificity":specificity,
         "AUC":auc,
-        "false negetive":tn,
-        "false positive":fp,
+        "false negatives":fn,
+        "false positives":fp,
 
     })
 df=pd.DataFrame(result)
+print("\nMODEL COMPARISON")
 print(df)
 
-best_model_name=df.sort_values(by=[
-    "sensitivity",
-    "AUC"
-    ],
-    ascending=False
-).iloc[0]["model name"]
+os.makedirs("results",exist_ok=True)
 
-best_model=model_files[best_model_name]
-with open("models/best_model.pkl","wb") as file:
-    pickle.dump( best_model,file)
-
-df.to_csv(
-    "results/model_comparison.csv",
+df.to_csv(os.path.join(RESULTS_DIR,"model_comparison.csv"),
     index=False
 )

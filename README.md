@@ -49,14 +49,16 @@ The features include measurements related to:
 
 The pipeline consists of the following stages:
 
-1. Dataset loading
-2. Data preparation
-3. Train/test splitting
-4. Feature scaling
-5. Model training
-6. Model evaluation
-7. Model comparison
-8. Feature importance analysis
+1. Dataset loading and preprocessing
+2. Stratified train/test splitting
+3. Feature scaling where required
+4. Baseline model training
+5. Stratified 5-Fold Cross-Validation
+6. Hyperparameter tuning using GridSearchCV
+7. Evaluation on an untouched test set
+8. Baseline vs tuned model comparison
+9. Confusion matrix and ROC analysis
+10. Random Forest feature importance analysis
 
 ### Train/Test Split
 
@@ -97,6 +99,35 @@ to model nonlinear relationships in the data.
 
 Feature scaling is not required for Random Forest.
 
+### Cross-Validation
+
+Stratified 5-Fold Cross-Validation is performed on the training data.
+
+Stratification preserves the benign/malignant class distribution in
+each fold and provides a more reliable estimate of model performance
+than a single validation split.
+
+For Logistic Regression, scaling is performed inside an sklearn
+Pipeline so that the scaler is fitted separately within each
+cross-validation fold, preventing data leakage.
+
+### Hyperparameter Tuning
+
+GridSearchCV is used to optimize the hyperparameters of Logistic
+Regression, Decision Tree, and Random Forest.
+
+Multiple evaluation metrics are calculated during tuning, including:
+
+- Accuracy
+- Sensitivity
+- F1-score
+- ROC-AUC
+
+The models are refitted using ROC-AUC as the primary optimization
+criterion.
+
+The held-out test set is not used during hyperparameter tuning.
+
 ## Evaluation Metrics
 
 The models are evaluated using multiple metrics.
@@ -133,22 +164,53 @@ across different classification thresholds.
 
 ## Results
 
-| Model | Accuracy | Sensitivity | Specificity | ROC-AUC |
+### Hyperparameter Tuning Results
+
+| Model | CV ROC-AUC | CV Sensitivity | CV Accuracy | CV F1 |
 |---|---:|---:|---:|---:|
-| Logistic Regression | 98.24% | 95.23% | 100% | 0.997 |
-| Decision Tree | 92.98% | 90.47% | 94.44% | 0.924 |
-| Random Forest | 97.36% | 92.85% | 100% | 0.992 |
+| Logistic Regression | 0.9959 | 95.29% | 97.36% | 96.40% |
+| Decision Tree | 0.9559 | 87.65% | 92.31% | 89.47% |
+| Random Forest | 0.9891 | 95.29% | 96.70% | 95.57% |
+
+Best hyperparameters identified by GridSearchCV:
+
+- **Logistic Regression:** C=1, solver=liblinear
+- **Decision Tree:** criterion=gini, max_depth=5, min_samples_leaf=4, min_samples_split=10
+- **Random Forest:** n_estimators=200, max_depth=10, max_features=log2, min_samples_leaf=1, min_samples_split=2
+
+## Test Set Results
+
+| Model | Accuracy | Sensitivity | Precision | Specificity | F1 | ROC-AUC | FN | FP |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Logistic Regression | 98.25% | 95.24% | 100.00% | 100.00% | 97.56% | 0.9977 | 2 | 0 |
+| Decision Tree | 92.98% | 90.48% | 90.48% | 94.44% | 90.48% | 0.9246 | 4 | 4 |
+| Random Forest | 97.37% | 92.86% | 100.00% | 100.00% | 96.30% | 0.9929 | 3 | 0 |
+| Tuned Logistic Regression | 97.37% | 95.24% | 97.56% | 98.61% | 96.39% | 0.9960 | 2 | 1 |
+| Tuned Decision Tree | 87.72% | 73.81% | 91.18% | 95.83% | 81.58% | 0.9654 | 11 | 3 |
+| Tuned Random Forest | 95.61% | 88.10% | 100.00% | 100.00% | 93.67% | 0.9942 | 5 | 0 |
+
 
 ### Results Interpretation
 
-Logistic Regression achieved the highest overall accuracy and
-specificity among the three models and produced a very high ROC-AUC.
+The baseline Logistic Regression achieved the strongest performance on
+the held-out test set, with 98.25% accuracy, 95.24% sensitivity, and a
+ROC-AUC of approximately 0.998.
 
-Random Forest achieved comparable sensitivity and ROC-AUC while also
-providing feature-importance estimates.
+Hyperparameter tuning did not improve every test-set metric.
 
-Decision Tree achieved lower overall performance compared with the
-other two models.
+The tuned Random Forest produced a slightly higher ROC-AUC than the
+baseline Random Forest, but its sensitivity decreased and the number
+of false-negative predictions increased.
+
+A similar effect was observed for the tuned Decision Tree: ROC-AUC
+improved, while sensitivity and overall accuracy decreased.
+
+This demonstrates that optimizing a model for one metric, such as
+ROC-AUC, does not guarantee improvement in threshold-dependent metrics
+such as sensitivity or accuracy.
+
+The held-out test set was used only for final evaluation rather than
+for hyperparameter selection.
 
 ### Clinical Interpretation
 
@@ -172,15 +234,27 @@ Therefore, model evaluation was not based on accuracy alone.
 
 ### Logistic Regression
 
-![Logistic Regression Confusion Matrix](results/Logistic_Regression_confusion_matrix.png)
+![Logistic Regression Confusion Matrix](results/confusion_matrices/Logistic_Regression_confusion_matrix.png)
 
 ### Decision Tree
 
-![Decision Tree Confusion Matrix](results/Decision_Tree_confusion_matrix.png)
+![Decision Tree Confusion Matrix](results/confusion_matrices/Decision_Tree_confusion_matrix.png)
 
 ### Random Forest
 
-![Random Forest Confusion Matrix](results/Random_Forest_confusion_matrix.png)
+![Random Forest Confusion Matrix](results/confusion_matrices/Random_Forest_confusion_matrix.png)
+
+### Tuned Logistic Regression
+
+![Tuned Logistic Regression Confusion Matrix](results/confusion_matrices/Tuned_Logistic_Regression_confusion_matrix.png)
+
+### Tuned Decision Tree
+
+![Tuned Decision Tree Confusion Matrix](results/confusion_matrices/Tuned_Decision_Tree_confusion_matrix.png)
+
+### Tuned Random Forest
+
+![Tuned Random Forest Confusion Matrix](results/confusion_matrices/Tuned_Random_Forest_confusion_matrix.png)
 
 ## Feature Importance Interpretation
 
@@ -194,28 +268,29 @@ these features causally cause cancer.
 
 ## Limitations
 
-This project has several limitations:
-
-- The evaluation uses a single train/test split.
-- The dataset is relatively small compared with real-world medical
+- Hyperparameter selection uses Stratified 5-Fold Cross-Validation, but
+  final performance is evaluated using a single held-out test split.
+- The dataset is relatively small compared with real-world clinical
   datasets.
-- The dataset does not represent the full diversity of clinical
+- The dataset may not represent the full diversity of clinical
   populations.
 - The models have not been externally validated on an independent
   clinical dataset.
-- Feature importance should not be interpreted as biological causality.
-- The system is a research/educational model and is not a clinically
-  validated diagnostic tool.
+- Feature importance represents predictive contribution within the
+  model and should not be interpreted as biological causality.
+- Model performance has not been assessed for probability calibration.
+- The system is an educational/research implementation and is not a
+  clinically validated diagnostic tool.
 
 ## Future Work
 
 Potential extensions include:
 
-- Cross-validation
-- Hyperparameter optimization
+- SHAP-based model explainability
 - Probability calibration
-- Class-imbalance analysis
-- Explainable AI methods
+- Classification-threshold optimization
+- Class-imbalance experiments
+- Evaluation on independent external datasets
+- More advanced ensemble methods
 - Deep learning approaches
 - Medical image analysis
-- Evaluation on independent datasets
